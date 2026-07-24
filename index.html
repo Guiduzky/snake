@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: monospace;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        h3 { margin: 5px 0; font-size: 14px; }
+        canvas {
+            background-color: #111;
+            border: 2px solid #0f0;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h3>SCORE: <span id="score">0</span></h3>
+    <canvas id="gameCanvas" width="200" height="200"></canvas>
+
+<script>
+// VARIABLES GLOBALES EN FORMATO ANTIGUO
+var canvas = document.getElementById("gameCanvas");
+var ctx = canvas.getContext("2d");
+var scoreDisplay = document.getElementById("score");
+
+var grid = 10;
+var score = 0;
+
+var snakeX = 100;
+var snakeY = 100;
+var snakeDx = 10;
+var snakeDy = 0;
+
+var cells = [
+    {x: 100, y: 100},
+    {x: 90, y: 100},
+    {x: 80, y: 100}
+];
+var maxCells = 3;
+
+var appleX = 50;
+var appleY = 50;
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function resetGame() {
+    snakeX = 100;
+    snakeY = 100;
+    snakeDx = 10;
+    snakeDy = 0;
+    cells = [
+        {x: 100, y: 100},
+        {x: 90, y: 100},
+        {x: 80, y: 100}
+    ];
+    maxCells = 3;
+    score = 0;
+    scoreDisplay.innerHTML = score;
+    appleX = getRandomInt(0, 20) * grid;
+    appleY = getRandomInt(0, 20) * grid;
+}
+
+// ESTA FUNCIÓN COMPLETA SE EJECUTA REPETIDAMENTE SIN USAR REQUESTANIMATIONFRAME
+function updateGame() {
+    // Mover la cabeza
+    snakeX += snakeDx;
+    snakeY += snakeDy;
+
+    // Control de choque con la pared
+    if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height) {
+        resetGame();
+        return;
+    }
+
+    // Agregar nueva posición de la cabeza al inicio del array
+    cells.unshift({x: snakeX, y: snakeY});
+
+    // Mantener el largo correcto de la serpiente
+    if (cells.length > maxCells) {
+        cells.pop();
+    }
+
+    // Limpiar pantalla vieja
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dibujar Manzana (Cuadrado Rojo)
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(appleX, appleY, grid - 1, grid - 1);
+
+    // Si la cabeza toca la manzana, come
+    if (snakeX === appleX && snakeY === appleY) {
+        maxCells++;
+        score += 10;
+        scoreDisplay.innerHTML = score;
+        appleX = getRandomInt(0, 20) * grid;
+        appleY = getRandomInt(0, 20) * grid;
+    }
+
+    // Dibujar la Serpiente (Cuadrados Verdes)
+    ctx.fillStyle = "#00ff00";
+    for (var i = 0; i < cells.length; i++) {
+        ctx.fillRect(cells[i].x, cells[i].y, grid - 1, grid - 1);
+
+        // Control de choque consigo misma (revisar desde el cuerpo, saltando la cabeza)
+        if (i > 0 && snakeX === cells[i].x && snakeY === cells[i].y) {
+            resetGame();
+        }
+    }
+}
+
+// CAPTURA DE TECLAS FÍSICAS (Flechas y números 2, 4, 6, 8)
+window.addEventListener("keydown", function(e) {
+    var code = e.keyCode || e.which;
+    
+    // Izquierda (Flecha izquierda o botón 4)
+    if ((e.key === "ArrowLeft" || code === 52 || code === 37) && snakeDx === 0) {
+        snakeDx = -grid;
+        snakeDy = 0;
+    }
+    // Arriba (Flecha arriba o botón 2)
+    else if ((e.key === "ArrowUp" || code === 50 || code === 38) && snakeDy === 0) {
+        snakeDx = 0;
+        snakeDy = -grid;
+    }
+    // Derecha (Flecha derecha o botón 6)
+    else if ((e.key === "ArrowRight" || code === 54 || code === 39) && snakeDx === 0) {
+        snakeDx = grid;
+        snakeDy = 0;
+    }
+    // Abajo (Flecha abajo o botón 8)
+    else if ((e.key === "ArrowDown" || code === 56 || code === 40) && snakeDy === 0) {
+        snakeDx = 0;
+        snakeDy = grid;
+    }
+});
+
+// TRUCO CLÁSICO: Ejecutar el juego de forma fija cada 150 milisegundos (Apto para navegadores viejos)
+setInterval(updateGame, 150);
+</script>
+</body>
+</html>
